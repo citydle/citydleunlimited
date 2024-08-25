@@ -19,15 +19,15 @@
             display: flex;
             flex-direction: column;
             align-items: center;
-            gap: 15px;
+            gap: 5px;
         }
         #guess-input {
-            padding: 15px;
-            font-size: 20px;
+            padding: 5px;
+            font-size: 10px;
         }
         #guess-button {
-            padding: 10px 20px;
-            font-size: 20px;
+            padding: 5px 15px;
+            font-size: 10px;
             background-color: #4CAF50;
             color: white;
             border: none;
@@ -39,15 +39,15 @@
         #guesses {
             display: flex;
             flex-direction: column;
-            gap: 15px;
+            gap: 5px;
         }
         .guess-row {
             display: flex;
-            gap: 15px;
+            gap: 5px;
         }
         .guess-letter {
-            width: 40px;
-            height: 40px;
+            width: 20px;
+            height: 20px;
             display: flex;
             justify-content: center;
             align-items: center;
@@ -720,9 +720,9 @@
 
         ];
 
-        let targetCity;
+          let targetCity;
         let guessCount = 0;
-        const maxGuesses = 6;
+        const maxGuesses = 15;
 
         function initGame() {
             targetCity = cities[Math.floor(Math.random() * cities.length)];
@@ -742,6 +742,20 @@
                       Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return Math.round(R * c);
+        }
+  function getDirectionEmoji(lat1, lon1, lat2, lon2) {
+            const dLat = lat2 - lat1;
+            const dLon = lon2 - lon1;
+            const angle = Math.atan2(dLat, dLon) * 180 / Math.PI;
+
+            if (angle > -22.5 && angle <= 22.5) return "→";
+            if (angle > 22.5 && angle <= 67.5) return "↗";
+            if (angle > 67.5 && angle <= 112.5) return "↑";
+            if (angle > 112.5 && angle <= 157.5) return "↖";
+            if (angle > 157.5 || angle <= -157.5) return "←";
+            if (angle > -157.5 && angle <= -112.5) return "↙";
+            if (angle > -112.5 && angle <= -67.5) return "↓";
+            if (angle > -67.5 && angle <= -22.5) return "↘";
         }
 
         function checkGuess() {
@@ -774,6 +788,13 @@
 
                 guessRow.appendChild(letter);
             }
+  if (guessedCity !== targetCity) {
+                const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'direction-emoji';
+                emojiSpan.textContent = directionEmoji;
+                guessRow.appendChild(emojiSpan);
+            }
 
             document.getElementById('guesses').appendChild(guessRow);
 
@@ -802,3 +823,4 @@
     </script>
 </body>
 </html>
+
