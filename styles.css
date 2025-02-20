@@ -1,0 +1,72 @@
+// Initialize Chess.js and Chessboard.js
+const game = new Chess();
+const board = Chessboard('board', {
+  draggable: true,
+  onDrop: handleMove,
+});
+
+// Timer variables
+let time = 300; // 5 minutes in seconds
+let increment = 5; // 5 seconds increment
+let timerInterval;
+
+// Start the timer
+function startTimer() {
+  timerInterval = setInterval(() => {
+    time--;
+    const minutes = Math.floor(time / 60);
+    const seconds = time % 60;
+    document.getElementById('timer').textContent = ${minutes}:${seconds.toString().padStart(2, '0')};
+    if (time <= 0) {
+      clearInterval(timerInterval);
+      alert("Time's up!");
+    }
+  }, 1000);
+}
+
+// Handle player move
+function handleMove(source, target) {
+  const move = game.move({ from: source, to: target, promotion: 'q' });
+  if (move === null) return 'snapback'; // Illegal move
+
+  board.position(game.fen());
+  if (game.in_checkmate()) {
+    alert("Checkmate! You lost.");
+    return;
+  }
+  if (game.in_check()) {
+    alert("Check!");
+  }
+
+  // Bot's turn
+  setTimeout(makeBotMove, 500);
+}
+
+// Bot makes a move
+function makeBotMove() {
+  const difficulty = document.getElementById('difficulty').value;
+  const stockfish = new Worker('stockfish.js'); // Include Stockfish.js
+  stockfish.postMessage('uci');
+  stockfish.postMessage(setoption name Skill Level value ${difficulty});
+  stockfish.postMessage('position fen ' + game.fen());
+  stockfish.postMessage('go depth 10');
+
+  stockfish.onmessage = (event) => {
+    if (event.data.startsWith('bestmove')) {
+      const move = event.data.split(' ')[1];
+      game.move(move);
+      board.position(game.fen());
+      if (game.in_checkmate()) {
+        alert("Checkmate! You won.");
+      }
+      if (game.in_check()) {
+        alert("Check!");
+      }
+      stockfish.terminate();
+    }
+  };
+}
+
+// Start the game
+startTimer();
+board.start();
