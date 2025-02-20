@@ -393,6 +393,204 @@
                 createBoard();
             }
         }
+        <!DOCTYPE html>
+<html lang="en">
+<!-- Previous HTML and CSS remain the same -->
+<script>
+    // Add this function to validate specific piece movements
+    function isValidMove(fromRow, fromCol, toRow, toCol) {
+        const piece = gameState.board[fromRow][fromCol];
+        if (!piece) return false;
+
+        const targetPiece = gameState.board[toRow][toCol];
+        if (targetPiece && isPieceWhite(targetPiece) === isPieceWhite(piece)) {
+            return false;
+        }
+
+        const rowDiff = Math.abs(toRow - fromRow);
+        const colDiff = Math.abs(toCol - fromCol);
+
+        switch (piece) {
+            case '♙': // White pawn
+                if (fromCol === toCol && !targetPiece) { // Forward move
+                    if (fromRow === 6 && toRow === 4) { // Initial two-square move
+                        return !gameState.board[5][fromCol]; // Check if square in between is empty
+                    }
+                    return fromRow - toRow === 1; // Regular one-square move
+                }
+                // Capture move
+                return fromRow - toRow === 1 && colDiff === 1 && targetPiece;
+
+            case '♟': // Black pawn
+                if (fromCol === toCol && !targetPiece) { // Forward move
+                    if (fromRow === 1 && toRow === 3) { // Initial two-square move
+                        return !gameState.board[2][fromCol]; // Check if square in between is empty
+                    }
+                    return toRow - fromRow === 1; // Regular one-square move
+                }
+                // Capture move
+                return toRow - fromRow === 1 && colDiff === 1 && targetPiece;
+
+            case '♖': case '♜': // Rook
+                if (rowDiff === 0 || colDiff === 0) {
+                    return isPathClear(fromRow, fromCol, toRow, toCol);
+                }
+                return false;
+
+            case '♘': case '♞': // Knight
+                return (rowDiff === 2 && colDiff === 1) || (rowDiff === 1 && colDiff === 2);
+
+            case '♗': case '♝': // Bishop
+                if (rowDiff === colDiff) {
+                    return isPathClear(fromRow, fromCol, toRow, toCol);
+                }
+                return false;
+
+            case '♕': case '♛': // Queen
+                if (rowDiff === colDiff || rowDiff === 0 || colDiff === 0) {
+                    return isPathClear(fromRow, fromCol, toRow, toCol);
+                }
+                return false;
+
+            case '♔': case '♚': // King
+                return rowDiff <= 1 && colDiff <= 1;
+
+            default:
+                return false;
+        }
+    }
+
+    // Add this helper function to check if the path is clear for pieces that move in lines
+    function isPathClear(fromRow, fromCol, toRow, toCol) {
+        const rowDir = fromRow === toRow ? 0 : (toRow - fromRow) / Math.abs(toRow - fromRow);
+        const colDir = fromCol === toCol ? 0 : (toCol - fromCol) / Math.abs(toCol - fromCol);
+        
+        let currentRow = fromRow + rowDir;
+        let currentCol = fromCol + colDir;
+        
+        while (currentRow !== toRow || currentCol !== toCol) {
+            if (gameState.board[currentRow][currentCol] !== '') {
+                return false;
+            }
+            currentRow += rowDir;
+            currentCol += colDir;
+        }
+        return true;
+    }
+
+    // Update the computer move function to use valid moves
+    function computerMove() {
+        const accuracy = document.getElementById('difficulty').value;
+        const hitRate = accuracy === 'easy' ? 0.6 : accuracy === 'medium' ? 0.8 : 0.95;
+
+        if (Math.random() < hitRate) {
+            let validMoves = [];
+            
+            // Find all possible valid moves for black pieces
+            for (let fromRow = 0; fromRow < 8; fromRow++) {
+                for (let fromCol = 0; fromCol < 8; fromCol++) {
+                    if (!isPieceWhite(gameState.board[fromRow][fromCol]) && 
+                        gameState.board[fromRow][fromCol] !== '') {
+                        
+                        for (let toRow = 0; toRow < 8; toRow++) {
+                            for (let toCol = 0; toCol < 8; toCol++) {
+                                if (isValidMove(fromRow, fromCol, toRow, toCol)) {
+                                    validMoves.push({
+                                        from: {row: fromRow, col: fromCol},
+                                        to: {row: toRow, col: toCol}
+                                    });
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+
+            if (validMoves.length > 0) {
+                const move = validMoves[Math.floor(Math.random() * validMoves.length)];
+                makeMove(move.from.row, move.from.col, move.to.row, move.to.col);
+                checkForCheckmate();
+            }
+        }
+
+        gameState.playerTurn = true;
+        document.getElementById('status').textContent = "Your turn";
+    }
+
+    // Add this function to detect if a king is in check
+    function isKingInCheck(isWhiteKing) {
+        // Find king's position
+        let kingRow, kingCol;
+        const kingPiece = isWhiteKing ? '♔' : '♚';
+        
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (gameState.board[row][col] === kingPiece) {
+                    kingRow = row;
+                    kingCol = col;
+                    break;
+                }
+            }
+        }
+
+        // Check if any opponent's piece can capture the king
+        for (let row = 0; row < 8; row++) {
+            for (let col = 0; col < 8; col++) {
+                if (gameState.board[row][col] !== '' && 
+                    isPieceWhite(gameState.board[row][col]) !== isWhiteKing) {
+                    if (isValidMove(row, col, kingRow, kingCol)) {
+                        return true;
+                    }
+                }
+            }
+        }
+        return false;
+    }
+
+    // Update checkForCheckmate function
+    function checkForCheckmate() {
+        const isWhiteTurn = gameState.playerTurn;
+        
+        if (isKingInCheck(isWhiteTurn)) {
+            const kingPiece = isWhiteTurn ? '♔' : '♚';
+            document.getElementById('status').textContent = "Check!";
+            
+            // Test if any move can get out of check
+            for (let fromRow = 0; fromRow < 8; fromRow++) {
+                for (let fromCol = 0; fromCol < 8; fromCol++) {
+                    if (isPieceWhite(gameState.board[fromRow][fromCol]) === isWhiteTurn) {
+                        for (let toRow = 0; toRow < 8; toRow++) {
+                            for (let toCol = 0; toCol < 8; toCol++) {
+                                if (isValidMove(fromRow, fromCol, toRow, toCol)) {
+                                    // Try the move
+                                    const originalPiece = gameState.board[toRow][toCol];
+                                    const movingPiece = gameState.board[fromRow][fromCol];
+                                    gameState.board[toRow][toCol] = movingPiece;
+                                    gameState.board[fromRow][fromCol] = '';
+                                    
+                                    const stillInCheck = isKingInCheck(isWhiteTurn);
+                                    
+                                    // Undo the move
+                                    gameState.board[fromRow][fromCol] = movingPiece;
+                                    gameState.board[toRow][toCol] = originalPiece;
+                                    
+                                    if (!stillInCheck) {
+                                        return false; // Found a valid move to get out of check
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            // No valid moves found to get out of check
+            endGame(isWhiteTurn ? "Checkmate! Computer wins!" : "Checkmate! You win!");
+            return true;
+        }
+        return false;
+    }
+</script>
+</html>
 
         // Initialize the game
         createBoard();
