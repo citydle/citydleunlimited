@@ -1173,6 +1173,14 @@ function getDirectionEmoji(lat1, lon1, lat2, lon2) {
             // Render the Wordle-style blocks
 const row = document.createElement('div');
 row.className = 'guess-row';
+                let colorClass = '';
+            if (guessedCityObj.name === targetCity.name) {
+                colorClass = 'green';
+            } else if (guessedCityObj.country === targetCity.country) {
+                colorClass = 'yellow';
+            } else if (guessedCityObj.continent === targetCity.continent) {
+                colorClass = 'orange';
+            }
 
 // 1. If toggle is ON, prepend the Country label on the left
 if (infoToggle.checked) {
