@@ -972,7 +972,20 @@
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return Math.round(R * c);
         }
+function getDirectionEmoji(lat1, lon1, lat2, lon2) {
+            const dLat = lat2 - lat1;
+            const dLon = lon2 - lon1;
+            const angle = Math.atan2(dLat, dLon) * 180 / Math.PI;
 
+            if (angle > -22.5 && angle <= 22.5) return "→";
+            if (angle > 22.5 && angle <= 67.5) return "↗";
+            if (angle > 67.5 && angle <= 112.5) return "↑";
+            if (angle > 112.5 && angle <= 157.5) return "↖";
+            if (angle > 157.5 || angle <= -157.5) return "←";
+            if (angle > -157.5 && angle <= -112.5) return "↙";
+            if (angle > -112.5 && angle <= -67.5) return "↓";
+            if (angle > -67.5 && angle <= -22.5) return "↘";
+        }
         function initGame() {
             targetCity = cities[Math.floor(Math.random() * cities.length)];
             guessCount = 0;
@@ -1032,7 +1045,15 @@
             // Calculate and show distance
             const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
             distanceDiv.textContent = `Distance to target: ${distance} km`;
-
+//STARTNEW
+              if (guessedCity !== targetCity) {
+                const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'direction-emoji';
+                emojiSpan.textContent = directionEmoji;
+                guessRow.appendChild(emojiSpan);
+            }
+            //ENDNEW
             // Render the Wordle-style blocks
             const row = document.createElement('div');
             row.className = 'guess-row';
