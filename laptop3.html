@@ -117,10 +117,40 @@
             width: 100%;
             align-items: center;
         }
+
+        /* Align labels vertically with the letter boxes */
+.guess-row {
+    display: flex;
+    gap: 5px;
+    align-items: center; 
+}
+
+/* Styling for the Country and Continent labels */
+.info-label {
+    font-size: 11px;
+    font-weight: bold;
+    color: #444;
+    background-color: #e0e0e0;
+    padding: 6px 10px;
+    border-radius: 15px;
+    text-transform: uppercase;
+    white-space: nowrap;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+    opacity: 0;
+    animation: emerge 0.5s forwards;
+}
+
+.country-label {
+    margin-right: 5px;
+}
+
+.continent-label {
+    margin-left: 5px;
+}  /*
         .guess-row {
             display: flex;
             gap: 5px;
-        }
+        } */
         .guess-letter {
             width: 40px;
             height: 40px;
@@ -144,7 +174,7 @@
         .orange { background-color: #FFA500; color: white; border-color: #e69500; }
         .yellow { background-color: #f1c40f; color: black; border-color: #d4ac0d; }
         .green { background-color: #4CAF50; color: white; border-color: #388E3C; }
-
+        
         #distance {
             font-weight: bold;
             margin-top: 15px;
@@ -166,17 +196,27 @@
 <body>
     <h1>Citydle</h1>
     
-    <div class="controls-wrapper">
-        <div class="toggle-container">
-            <label class="switch">
-                <input type="checkbox" id="extra-guesses-toggle">
-                <span class="slider"></span>
-            </label>
-            <span>Enable 4 extra guesses (applies to NEXT game)</span>
-        </div>
-        <button id="reveal-button">Reveal Answer</button>
+ <div class="controls-wrapper">
+    <div class="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="extra-guesses-toggle">
+            <span class="slider"></span>
+        </label>
+        <span>Enable 4 extra guesses (applies to NEXT game)</span>
+    </div>
+    
+    <!-- New Toggle Switch -->
+    <div class="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="info-toggle">
+            <span class="slider"></span>
+        </label>
+        <span>Show Country & Continent info</span>
     </div>
 
+    <button id="reveal-button">Reveal Answer</button>
+</div>
+    
     <div id="game-container">
         <!-- Input now linked to the datalist for dropdown functionality -->
         <input type="text" id="guess-input" list="city-names" placeholder="Select or type a city">
@@ -955,6 +995,7 @@
         const distanceDiv = document.getElementById('distance');
         const resultDiv = document.getElementById('result');
         const counterDiv = document.getElementById('guess-counter');
+        const infoToggle = document.getElementById('info-toggle');
 
         // Toggle listener - applies only to the NEXT game
         toggleBtn.addEventListener('change', (e) => {
@@ -1097,7 +1138,7 @@ function getDirectionEmoji(lat1, lon1, lat2, lon2) {
            
             */
             // Render the Wordle-style blocks
-            const row = document.createElement('div');
+          /*  const row = document.createElement('div');
             row.className = 'guess-row';
 
             // Determine Wordle color
@@ -1128,7 +1169,7 @@ function getDirectionEmoji(lat1, lon1, lat2, lon2) {
                 row.appendChild(letterBox);
             }
             guessesDiv.appendChild(row);
-
+*/
             // Win / Loss condition checks
             if (guessedCityObj.name === targetCity.name) {
                 endGame(true);
