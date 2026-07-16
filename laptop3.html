@@ -1043,8 +1043,49 @@
             updateCounter();
 
             // Calculate and show distance
-            const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
-            distanceDiv.textContent = `Distance to target: ${distance} km`;
+            /*const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+            distanceDiv.textContent = `Distance to target: ${distance} km`;*/
+            // Calculate distance and direction
+const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+
+if (guessedCityObj.name === targetCity.name) {
+    distanceDiv.textContent = `Distance to target: 0 km 🎯`;
+} else {
+    const arrow = getDirectionEmoji(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+    distanceDiv.textContent = `Distance to target: ${distance} km ${arrow}`;
+}
+
+
+            // Helper functions to convert degrees to radians and back
+function toRadians(degrees) {
+    return degrees * Math.PI / 180;
+}
+
+function toDegrees(radians) {
+    return radians * 180 / Math.PI;
+}
+
+// Function to calculate bearing and return the correct emoji
+function getDirectionEmoji(lat1, lon1, lat2, lon2) {
+    const phi1 = toRadians(lat1);
+    const phi2 = toRadians(lat2);
+    const deltaLambda = toRadians(lon2 - lon1);
+
+    const y = Math.sin(deltaLambda) * Math.cos(phi2);
+    const x = Math.cos(phi1) * Math.sin(phi2) -
+              Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
+
+    let bearing = toDegrees(Math.atan2(y, x));
+    bearing = (bearing + 360) % 360; // Normalize to 0-360 degrees
+
+    // Map the bearing to 8 directional arrows
+    // 0=N, 1=NE, 2=E, 3=SE, 4=S, 5=SW, 6=W, 7=NW, 8=N
+    const arrows = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️', '⬆️'];
+    
+    // Divide by 45 degrees to find the closest octant
+    const index = Math.round(bearing / 45); 
+    return arrows[index];
+}
 /*STARTNEW
               if (guessedCity !== targetCity) {
                 const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
