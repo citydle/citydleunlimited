@@ -4,239 +4,201 @@
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>Citydle by Fu2</title>
-    <style>
-        body {
-            font-family: Arial, sans-serif;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            background-color: #f0f0f0;
-        }
-        h1 {
-            color: #333;
-        }
-        #game-container {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 20px;
-            width: 100%;
-            max-width: 500px;
-        }
-        
-        /* New styling for the controls (Toggle + Reveal Button) */
-        .controls-wrapper {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 15px;
-            margin-bottom: 10px;
-        }
-        
-        .toggle-container {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-            font-size: 14px;
-            color: #555;
-        }
+   <style>
+    body {
+        font-family: Arial, sans-serif;
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        background-color: #f0f0f0;
+        transition: background-color 0.3s, color 0.3s;
+    }
+    h1 {
+        color: #333;
+    }
+    #game-container {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 20px;
+        width: 100%;
+        max-width: 600px;
+    }
+    
+    /* Controls (Toggles + Button) */
+    .controls-wrapper {
+        display: flex;
+        flex-direction: column;
+        align-items: center;
+        gap: 15px;
+        margin-bottom: 20px;
+    }
+    .toggle-container {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-size: 14px;
+        color: #555;
+    }
+    .switch {
+        position: relative;
+        display: inline-block;
+        width: 40px;
+        height: 20px;
+    }
+    .switch input { 
+        opacity: 0;
+        width: 0;
+        height: 0;
+    }
+    .slider {
+        position: absolute;
+        cursor: pointer;
+        top: 0; left: 0; right: 0; bottom: 0;
+        background-color: #ccc;
+        transition: .4s;
+        border-radius: 34px;
+    }
+    .slider:before {
+        position: absolute;
+        content: "";
+        height: 14px;
+        width: 14px;
+        left: 3px;
+        bottom: 3px;
+        background-color: white;
+        transition: .4s;
+        border-radius: 50%;
+    }
+    input:checked + .slider {
+        background-color: #4CAF50;
+    }
+    input:checked + .slider:before {
+        transform: translateX(20px);
+    }
 
-        /* Slide-button (Toggle) CSS */
-        .switch {
-            position: relative;
-            display: inline-block;
-            width: 40px;
-            height: 20px;
-        }
-        .switch input { 
-            opacity: 0;
-            width: 0;
-            height: 0;
-        }
-        .slider {
-            position: absolute;
-            cursor: pointer;
-            top: 0; left: 0; right: 0; bottom: 0;
-            background-color: #ccc;
-            transition: .4s;
-            border-radius: 34px;
-        }
-        .slider:before {
-            position: absolute;
-            content: "";
-            height: 14px;
-            width: 14px;
-            left: 3px;
-            bottom: 3px;
-            background-color: white;
-            transition: .4s;
-            border-radius: 50%;
-        }
-        input:checked + .slider {
-            background-color: #4CAF50;
-        }
-        input:checked + .slider:before {
-            transform: translateX(20px);
-        }
+    /* Buttons & Inputs */
+    .action-buttons {
+        display: flex;
+        gap: 10px;
+    }
+    #guess-input {
+        padding: 15px;
+        font-size: 20px;
+        width: 100%;
+        box-sizing: border-box;
+        border-radius: 5px;
+        border: 1px solid #ccc;
+    }
+    button {
+        padding: 10px 20px;
+        font-size: 16px;
+        color: white;
+        border: none;
+        cursor: pointer;
+        border-radius: 5px;
+    }
+    #guess-button { background-color: #4CAF50; }
+    #guess-button:hover { background-color: #45a049; }
+    #guess-button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
 
-        /* Buttons */
-        .action-buttons {
-            display: flex;
-            gap: 10px;
-        }
-        
-        #guess-input {
-            padding: 15px;
-            font-size: 20px;
-            width: 100%;
-            box-sizing: border-box;
-        }
-        button {
-            padding: 10px 20px;
-            font-size: 16px;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 5px;
-        }
-        #guess-button { background-color: #4CAF50; }
-        #guess-button:hover { background-color: #45a049; }
-        #guess-button:disabled { background-color: #a5d6a7; cursor: not-allowed; }
+    #reveal-button { background-color: #f44336; }
+    #reveal-button:hover { background-color: #da190b; }
+    #reveal-button:disabled { background-color: #ef9a9a; cursor: not-allowed; }
+    
+    #restart-button { background-color: #2196F3; display: none; }
+    #restart-button:hover { background-color: #0b7dda; }
 
-        #reveal-button { background-color: #f44336; }
-        #reveal-button:hover { background-color: #da190b; }
-        #reveal-button:disabled { background-color: #ef9a9a; cursor: not-allowed; }
-        
-        #restart-button { background-color: #2196F3; display: none; }
-        #restart-button:hover { background-color: #0b7dda; }
+    /* Layout for Guesses (3 Columns) */
+    #guesses {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+        width: 100%;
+        align-items: center;
+    }
+    .guess-row {
+        display: flex;
+        width: 100%;
+        align-items: center;
+    }
+    
+    .info-container {
+        flex: 1;
+        display: flex;
+        align-items: center;
+    }
+    .info-container.left {
+        justify-content: flex-end;
+        padding-right: 15px; 
+    }
+    .info-container.right {
+        justify-content: flex-start;
+        padding-left: 15px;
+    }
+    
+    /* THIS fixes the vertical stacking */
+    .letters-container {
+        display: flex;
+        flex-direction: row; 
+        gap: 5px;
+        justify-content: center;
+    }
 
-        #guesses {
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            width: 100%;
-            align-items: center;
-        }
+    /* Badges & Wordle Tiles */
+    .info-label {
+        font-size: 11px;
+        font-weight: bold;
+        color: #444;
+        background-color: #e0e0e0;
+        padding: 6px 10px;
+        border-radius: 15px;
+        text-transform: uppercase;
+        white-space: nowrap;
+        box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        opacity: 0;
+        animation: emerge 0.5s forwards;
+    }
 
-        /* Align labels vertically with the letter boxes */
-.guess-row {
-    display: flex;
-    gap: 5px;
-    align-items: center; 
-}
+    .guess-letter {
+        width: 40px;
+        height: 40px;
+        display: flex;
+        justify-content: center;
+        align-items: center;
+        background-color: #ddd;
+        border: 1px solid #999;
+        font-weight: bold;
+        text-transform: uppercase;
+        opacity: 0;
+        animation: emerge 0.5s forwards;
+        border-radius: 4px;
+    }
+    
+    @keyframes emerge {
+        from { opacity: 0; transform: translateY(-10px); }
+        to { opacity: 1; transform: translateY(0); }
+    }
 
-/* Styling for the Country and Continent labels */
-.info-label {
-    font-size: 11px;
-    font-weight: bold;
-    color: #444;
-    background-color: #e0e0e0;
-    padding: 6px 10px;
-    border-radius: 15px;
-    text-transform: uppercase;
-    white-space: nowrap;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.1);
-    opacity: 0;
-    animation: emerge 0.5s forwards;
-}
+    .orange { background-color: #FFA500; color: white; border-color: #e69500; }
+    .yellow { background-color: #f1c40f; color: black; border-color: #d4ac0d; }
+    .green { background-color: #4CAF50; color: white; border-color: #388E3C; }
 
-.country-label {
-    margin-right: 5px;
-}
+    /* Results */
+    #distance { font-weight: bold; margin-top: 15px; font-size: 18px; }
+    #result { font-weight: bold; margin-top: 10px; font-size: 20px; text-align: center; }
+    #guess-counter { font-size: 14px; color: #666; margin-bottom: 5px; }
 
-.continent-label {
-    margin-left: 5px;
-}  /*
-        .guess-row {
-            display: flex;
-            gap: 5px;
-        } */
-        .guess-letter {
-            width: 40px;
-            height: 40px;
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            background-color: #ddd;
-            border: 1px solid #999;
-            font-weight: bold;
-            text-transform: uppercase;
-            opacity: 0;
-            animation: emerge 0.5s forwards;
-            border-radius: 4px;
-        }
-        
-        @keyframes emerge {
-            from { opacity: 0; transform: translateY(-10px); }
-            to { opacity: 1; transform: translateY(0); }
-        }
-
-        .orange { background-color: #FFA500; color: white; border-color: #e69500; }
-        .yellow { background-color: #f1c40f; color: black; border-color: #d4ac0d; }
-        .green { background-color: #4CAF50; color: white; border-color: #388E3C; }
-        
-        #distance {
-            font-weight: bold;
-            margin-top: 15px;
-            font-size: 18px;
-        }
-        #result {
-            font-weight: bold;
-            margin-top: 10px;
-            font-size: 20px;
-            text-align: center;
-        }
-        #guess-counter {
-            font-size: 14px;
-            color: #666;
-            margin-bottom: 5px;
-        }
-
-        /* --- Dark Mode Styles --- */
-body.dark-mode {
-    background-color: #121212;
-    color: #e0e0e0;
-}
-
-body.dark-mode h1 {
-    color: #ffffff;
-}
-
-body.dark-mode .toggle-container {
-    color: #bbbbbb;
-}
-
-body.dark-mode #guess-input {
-    background-color: #2a2a2a;
-    color: #ffffff;
-    border: 1px solid #444;
-}
-
-body.dark-mode #guess-counter {
-    color: #aaaaaa;
-}
-
-/* Update default letter boxes for dark mode */
-body.dark-mode .guess-letter {
-    background-color: #333333;
-    border-color: #555555;
-    color: #ffffff;
-}
-
-/* Tweak the yellow tile in dark mode so white text is readable */
-body.dark-mode .yellow { 
-    background-color: #b89700; 
-    color: white; 
-    border-color: #997d00; 
-}
-
-/* Update the country/continent badges for dark mode */
-body.dark-mode .info-label {
-    background-color: #2a2a2a;
-    color: #cccccc;
-    box-shadow: 0 1px 3px rgba(255,255,255,0.05);
-}
-    </style>
+    /* --- Dark Mode Styles --- */
+    body.dark-mode { background-color: #121212; color: #e0e0e0; }
+    body.dark-mode h1 { color: #ffffff; }
+    body.dark-mode .toggle-container { color: #bbbbbb; }
+    body.dark-mode #guess-input { background-color: #2a2a2a; color: #ffffff; border: 1px solid #444; }
+    body.dark-mode #guess-counter { color: #aaaaaa; }
+    body.dark-mode .guess-letter { background-color: #333333; border-color: #555555; color: #ffffff; }
+    body.dark-mode .yellow { background-color: #b89700; color: white; border-color: #997d00; }
+    body.dark-mode .info-label { background-color: #2a2a2a; color: #cccccc; box-shadow: 0 1px 3px rgba(255,255,255,0.05); }
+</style>
 </head>
 <body>
     <h1>Citydle</h1>
