@@ -973,7 +973,7 @@
         let targetCity;
         let guessCount = 0;
         let currentMaxGuesses = 6;
-        let nextGameMaxGuesses = 6;
+        let nextGameMaxGuesses = 10;
 
         // Populate the datalist alphabetically
         const datalist = document.getElementById('city-names');
@@ -998,7 +998,7 @@
         const counterDiv = document.getElementById('guess-counter');
       
 
-        // Toggle listener - applies to this game
+        // Toggle listener - applies to next game
         toggleBtn.addEventListener('change', (e) => {
             nextGameMaxGuesses = e.target.checked ? 10 : 6;
         });
