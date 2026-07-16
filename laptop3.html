@@ -202,7 +202,7 @@
             <input type="checkbox" id="extra-guesses-toggle">
             <span class="slider"></span>
         </label>
-        <span>Enable 4 extra guesses (applies to NEXT game)</span>
+        <span>Enable 4 extra guesses</span>
     </div>
     
     <!-- New Toggle Switch -->
@@ -998,9 +998,9 @@
         const counterDiv = document.getElementById('guess-counter');
       
 
-        // Toggle listener - applies only to the NEXT game
+        // Toggle listener - applies to this game
         toggleBtn.addEventListener('change', (e) => {
-            nextGameMaxGuesses = e.target.checked ? 10 : 6;
+            currentGameMaxGuesses = e.target.checked ? 10 : 6;
         });
 
         // Haversine formula to calculate distance in KM
