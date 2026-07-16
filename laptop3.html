@@ -119,13 +119,39 @@
         }
 
         /* Align labels vertically with the letter boxes */
+/* Make the row full width and align items horizontally */
 .guess-row {
     display: flex;
-    gap: 5px;
-    align-items: center; 
+    width: 100%;
+    align-items: center;
 }
 
-/* Styling for the Country and Continent labels */
+/* Side columns take up exactly equal space (flex: 1) so the center is perfectly anchored */
+.info-container {
+    flex: 1;
+    display: flex;
+}
+
+/* Align the country to the right edge of its invisible column */
+.info-container.left {
+    justify-content: flex-end;
+    padding-right: 15px; 
+}
+
+/* Align the continent to the left edge of its invisible column */
+.info-container.right {
+    justify-content: flex-start;
+    padding-left: 15px;
+}
+
+/* The middle column for the Wordle boxes */
+.letters-container {
+    display: flex;
+    gap: 5px;
+    justify-content: center;
+}
+
+/* Base style for the labels remains mostly the same */
 .info-label {
     font-size: 11px;
     font-weight: bold;
@@ -139,18 +165,6 @@
     opacity: 0;
     animation: emerge 0.5s forwards;
 }
-
-.country-label {
-    margin-right: 5px;
-}
-
-.continent-label {
-    margin-left: 5px;
-}  /*
-        .guess-row {
-            display: flex;
-            gap: 5px;
-        } */
         .guess-letter {
             width: 40px;
             height: 40px;
@@ -1137,14 +1151,66 @@ darkModeToggle.addEventListener('change', (e) => {
         });
 
         // Guess logic
-        guessButton.addEventListener('click', () => {
-            const userGuess = guessInput.value.trim();
-            const guessedCityObj = cities.find(c => c.name.toLowerCase() === userGuess.toLowerCase());
+      // Render the Wordle-style blocks with a 3-column layout
+const row = document.createElement('div');
+row.className = 'guess-row';
 
-            if (!guessedCityObj) {
-                alert('City not found in the list. Please select from the dropdown.');
-                return;
-            }
+// Create the three columns
+const leftContainer = document.createElement('div');
+leftContainer.className = 'info-container left';
+
+const centerContainer = document.createElement('div');
+centerContainer.className = 'letters-container';
+
+const rightContainer = document.createElement('div');
+rightContainer.className = 'info-container right';
+
+// 1. If toggle is ON, put the Country label in the left column
+if (infoToggle.checked) {
+    const countryLabel = document.createElement('div');
+    countryLabel.className = 'info-label';
+    countryLabel.textContent = guessedCityObj.country;
+    leftContainer.appendChild(countryLabel);
+}
+
+// 2. Put the letter boxes in the center column
+for (let i = 0; i < guessedCityObj.name.length; i++) {
+    const letterBox = document.createElement('div');
+    letterBox.className = `guess-letter ${colorClass}`;
+    
+    // Keep spaces as empty squares
+    if(guessedCityObj.name[i] === " ") {
+        letterBox.textContent = "-";
+        letterBox.style.backgroundColor = "transparent";
+        letterBox.style.border = "none";
+    } else {
+        letterBox.textContent = guessedCityObj.name[i];
+    }
+    
+    // Stagger animation slightly based on position
+    letterBox.style.animationDelay = `${i * 0.05}s`;
+    centerContainer.appendChild(letterBox);
+}
+
+// 3. If toggle is ON, put the Continent label in the right column
+if (infoToggle.checked) {
+    const continentLabel = document.createElement('div');
+    continentLabel.className = 'info-label';
+    
+    // Calculate continent animation delay so it fades in right after the letters finish animating
+    const endDelay = guessedCityObj.name.length * 0.05; 
+    continentLabel.style.animationDelay = `${endDelay}s`;
+    
+    continentLabel.textContent = guessedCityObj.continent;
+    rightContainer.appendChild(continentLabel);
+}
+
+// Add all three columns to the main row
+row.appendChild(leftContainer);
+row.appendChild(centerContainer);
+row.appendChild(rightContainer);
+
+guessesDiv.appendChild(row);
 
             guessCount++;
             updateCounter();
