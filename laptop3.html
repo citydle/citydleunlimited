@@ -1169,7 +1169,51 @@ function getDirectionEmoji(lat1, lon1, lat2, lon2) {
                 row.appendChild(letterBox);
             }
             guessesDiv.appendChild(row);
-*/
+*/ 
+            // Render the Wordle-style blocks
+const row = document.createElement('div');
+row.className = 'guess-row';
+
+// 1. If toggle is ON, prepend the Country label on the left
+if (infoToggle.checked) {
+    const countryLabel = document.createElement('div');
+    countryLabel.className = 'info-label country-label';
+    countryLabel.textContent = guessedCityObj.country;
+    row.appendChild(countryLabel);
+}
+
+// 2. Create the standard letter boxes (Middle)
+for (let i = 0; i < guessedCityObj.name.length; i++) {
+    const letterBox = document.createElement('div');
+    letterBox.className = `guess-letter ${colorClass}`;
+    
+    // Keep spaces as empty squares
+    if(guessedCityObj.name[i] === " ") {
+        letterBox.textContent = "-";
+        letterBox.style.backgroundColor = "transparent";
+        letterBox.style.border = "none";
+    } else {
+        letterBox.textContent = guessedCityObj.name[i];
+    }
+    
+    // Stagger animation slightly based on position
+    letterBox.style.animationDelay = `${i * 0.05}s`;
+    row.appendChild(letterBox);
+}
+
+// 3. If toggle is ON, append the Continent label on the right
+if (infoToggle.checked) {
+    const continentLabel = document.createElement('div');
+    continentLabel.className = 'info-label continent-label';
+    // Calculate continent animation delay so it fades in right after the letters finish animating
+    const endDelay = guessedCityObj.name.length * 0.05; 
+    continentLabel.style.animationDelay = `${endDelay}s`;
+    
+    continentLabel.textContent = guessedCityObj.continent;
+    row.appendChild(continentLabel);
+}
+
+guessesDiv.appendChild(row);
             // Win / Loss condition checks
             if (guessedCityObj.name === targetCity.name) {
                 endGame(true);
