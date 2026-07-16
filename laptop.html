@@ -912,8 +912,17 @@
 
             document.getElementById('guesses').appendChild(guessRow);
 
-            const distance = calculateDistance(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
-            document.getElementById('distance').textContent = `Distance: ${distance} km`;
+            /*const distance = calculateDistance(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
+            document.getElementById('distance').textContent = `Distance: ${distance} km`;*/
+            // Calculate distance and direction
+const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+
+if (guessedCityObj.name === targetCity.name) {
+    distanceDiv.textContent = `Distance to target: 0 km 🎯`;
+} else {
+    const arrow = getDirectionEmoji(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+    distanceDiv.textContent = `Distance to target: ${distance} km ${arrow}`;
+}
 
             if (guessedCity === targetCity) {
                 document.getElementById('result').textContent = 'Congratulations! You guessed the city!';
