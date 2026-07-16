@@ -289,8 +289,7 @@ body.dark-mode .info-label {
     </div>
 
     <script>
-        const cities = [
-           {name: "Moscow", lat: 55.7558, lon: 37.6173, continent: "Europe", country: "Russia"},
+      const cities = [{name: "Moscow", lat: 55.7558, lon: 37.6173, continent: "Europe", country: "Russia"},
     {name: "Kharkiv", lat: 50.0000, lon: 36.2500, continent: "Europe", country: "Ukraine"},
     {name: "St Petersburg", lat: 59.9375, lon: 30.3086, continent: "Europe", country: "Russia"},
     {name: "Kazan", lat: 55.7887, lon: 49.1221, continent: "Europe", country: "Russia"},
@@ -1023,38 +1022,41 @@ body.dark-mode .info-label {
 {name: "Patna", lat: 25.5941, lon: 85.1376, continent: "Asia", country: "India"},
 {name: "Nuuk", lat: 64.1830, lon: -51.7216, continent: "North America", country: "Greenland"}
 
-        ];
+];
 
-        let targetCity;
-        let guessCount = 0;
-        let currentMaxGuesses = 6;
-        let nextGameMaxGuesses = 6;
+let targetCity;
+let guessCount = 0;
+let currentMaxGuesses = 6;
+let nextGameMaxGuesses = 6;
 
-        // Populate the datalist alphabetically
-        const datalist = document.getElementById('city-names');
-        const sortedCities = [...new Set(cities.map(c => c.name))].sort((a, b) => a.localeCompare(b));
-        
-        sortedCities.forEach(cityName => {
-            const option = document.createElement('option');
-            option.value = cityName;
-            datalist.appendChild(option);
-        });
+// Populate the datalist alphabetically
+const datalist = document.getElementById('city-names');
+const sortedCities = [...new Set(cities.map(c => c.name))].sort((a, b) => a.localeCompare(b));
 
-        // DOM Elements
-        const toggleBtn = document.getElementById('extra-guesses-toggle');
-        const revealBtn = document.getElementById('reveal-button');
-        const guessInput = document.getElementById('guess-input');
-        const guessButton = document.getElementById('guess-button');
-        const restartButton = document.getElementById('restart-button');
-          const infoToggle = document.getElementById('info-toggle');
-        const guessesDiv = document.getElementById('guesses');
-        const distanceDiv = document.getElementById('distance');
-        const resultDiv = document.getElementById('result');
-        const counterDiv = document.getElementById('guess-counter');
-      
+sortedCities.forEach(cityName => {
+    const option = document.createElement('option');
+    option.value = cityName;
+    datalist.appendChild(option);
+});
+
+// DOM Elements
+const toggleBtn = document.getElementById('extra-guesses-toggle');
+const infoToggle = document.getElementById('info-toggle');
 const darkModeToggle = document.getElementById('dark-mode-toggle');
+const revealBtn = document.getElementById('reveal-button');
+const guessInput = document.getElementById('guess-input');
+const guessButton = document.getElementById('guess-button');
+const restartButton = document.getElementById('restart-button');
+const guessesDiv = document.getElementById('guesses');
+const distanceDiv = document.getElementById('distance');
+const resultDiv = document.getElementById('result');
+const counterDiv = document.getElementById('guess-counter');
 
-// Dark Mode listener
+// Toggle listeners
+toggleBtn.addEventListener('change', (e) => {
+    nextGameMaxGuesses = e.target.checked ? 10 : 6;
+});
+
 darkModeToggle.addEventListener('change', (e) => {
     if (e.target.checked) {
         document.body.classList.add('dark-mode');
@@ -1062,117 +1064,22 @@ darkModeToggle.addEventListener('change', (e) => {
         document.body.classList.remove('dark-mode');
     }
 });
-        
-        // Toggle listener - applies to next game
-        toggleBtn.addEventListener('change', (e) => {
-            nextGameMaxGuesses = e.target.checked ? 10 : 6;
-        });
 
-        // Haversine formula to calculate distance in KM
-        function calculateDistance(lat1, lon1, lat2, lon2) {
-            const R = 6371; 
-            const dLat = (lat2 - lat1) * Math.PI / 180;
-            const dLon = (lon2 - lon1) * Math.PI / 180;
-            const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
-                      Math.sin(dLon/2) * Math.sin(dLon/2);
-            const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
-            return Math.round(R * c);
-        }
-/*function getDirectionEmoji(lat1, lon1, lat2, lon2) {
-            const dLat = lat2 - lat1;
-            const dLon = lon2 - lon1;
-            const angle = Math.atan2(dLat, dLon) * 180 / Math.PI;
+// Math Helpers for Distance & Direction
+function toRadians(degrees) { return degrees * Math.PI / 180; }
+function toDegrees(radians) { return radians * 180 / Math.PI; }
 
-            if (angle > -22.5 && angle <= 22.5) return "→";
-            if (angle > 22.5 && angle <= 67.5) return "↗";
-            if (angle > 67.5 && angle <= 112.5) return "↑";
-            if (angle > 112.5 && angle <= 157.5) return "↖";
-            if (angle > 157.5 || angle <= -157.5) return "←";
-            if (angle > -157.5 && angle <= -112.5) return "↙";
-            if (angle > -112.5 && angle <= -67.5) return "↓";
-            if (angle > -67.5 && angle <= -22.5) return "↘";
-        } */
-        function initGame() {
-            targetCity = cities[Math.floor(Math.random() * cities.length)];
-            guessCount = 0;
-            
-            // Set max guesses based on the toggle state BEFORE the game started
-            currentMaxGuesses = nextGameMaxGuesses; 
-            
-            // Reset UI
-            guessesDiv.innerHTML = '';
-            distanceDiv.innerHTML = '';
-            resultDiv.innerHTML = '';
-            guessInput.value = '';
-            guessInput.disabled = false;
-            guessButton.disabled = false;
-            revealBtn.disabled = false;
-            restartButton.style.display = 'none';
-            updateCounter();
-        }
-
-        function updateCounter() {
-            counterDiv.textContent = `Guesses remaining: ${currentMaxGuesses - guessCount}`;
-        }
-
-        function endGame(won) {
-            guessInput.disabled = true;
-            guessButton.disabled = true;
-            revealBtn.disabled = true;
-            restartButton.style.display = 'inline-block';
-            
-            if (won) {
-                resultDiv.textContent = `Congratulations! You found ${targetCity.name}!`;
-                resultDiv.style.color = "green";
-            } else {
-                resultDiv.textContent = `You lost! The city was ${targetCity.name}.`;
-                resultDiv.style.color = "red";
-            }
-        }
-
-        // Reveal logic
-        revealBtn.addEventListener('click', () => {
-            endGame(false);
-        });
-
-        // Guess logic
-        guessButton.addEventListener('click', () => {
-            const userGuess = guessInput.value.trim();
-            const guessedCityObj = cities.find(c => c.name.toLowerCase() === userGuess.toLowerCase());
-
-            if (!guessedCityObj) {
-                alert('City not found in the list. Please select from the dropdown.');
-                return;
-            }
-
-            guessCount++;
-            updateCounter();
-
-            // Calculate and show distance
-            /*const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
-            distanceDiv.textContent = `Distance to target: ${distance} km`;*/
-            // Calculate distance and direction
-const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
-
-if (guessedCityObj.name === targetCity.name) {
-    distanceDiv.textContent = `Distance to target: 0 km 🎯`;
-} else {
-    const arrow = getDirectionEmoji(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
-    distanceDiv.textContent = `Distance to target: ${distance} km ${arrow}`;
+function calculateDistance(lat1, lon1, lat2, lon2) {
+    const R = 6371; 
+    const dLat = toRadians(lat2 - lat1);
+    const dLon = toRadians(lon2 - lon1);
+    const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
+              Math.cos(toRadians(lat1)) * Math.cos(toRadians(lat2)) *
+              Math.sin(dLon/2) * Math.sin(dLon/2);
+    const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
+    return Math.round(R * c);
 }
 
-
-            // Helper functions to convert degrees to radians and back
-function toRadians(degrees) {
-    return degrees * Math.PI / 180;
-}
-
-function toDegrees(radians) {
-    return radians * 180 / Math.PI;
-}
-
-// Function to calculate bearing and return the correct emoji
 function getDirectionEmoji(lat1, lon1, lat2, lon2) {
     const phi1 = toRadians(lat1);
     const phi2 = toRadians(lat2);
@@ -1183,135 +1090,157 @@ function getDirectionEmoji(lat1, lon1, lat2, lon2) {
               Math.sin(phi1) * Math.cos(phi2) * Math.cos(deltaLambda);
 
     let bearing = toDegrees(Math.atan2(y, x));
-    bearing = (bearing + 360) % 360; // Normalize to 0-360 degrees
+    bearing = (bearing + 360) % 360; 
 
-    // Map the bearing to 8 directional arrows
-    // 0=N, 1=NE, 2=E, 3=SE, 4=S, 5=SW, 6=W, 7=NW, 8=N
     const arrows = ['⬆️', '↗️', '➡️', '↘️', '⬇️', '↙️', '⬅️', '↖️', '⬆️'];
-    
-    // Divide by 45 degrees to find the closest octant
     const index = Math.round(bearing / 45); 
     return arrows[index];
 }
-/*STARTNEW
-              if (guessedCity !== targetCity) {
-                const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
-                const emojiSpan = document.createElement('span');
-                emojiSpan.className = 'direction-emoji';
-                emojiSpan.textContent = directionEmoji;
-                guessRow.appendChild(emojiSpan);
-            }
-           
-            */
-            // Render the Wordle-style blocks
-          /*  const row = document.createElement('div');
-            row.className = 'guess-row';
 
-            // Determine Wordle color
-            let colorClass = '';
-            if (guessedCityObj.name === targetCity.name) {
-                colorClass = 'green';
-            } else if (guessedCityObj.country === targetCity.country) {
-                colorClass = 'yellow';
-            } else if (guessedCityObj.continent === targetCity.continent) {
-                colorClass = 'orange';
-            }
-
-            // Create letter boxes
-            for (let i = 0; i < guessedCityObj.name.length; i++) {
-                const letterBox = document.createElement('div');
-                letterBox.className = `guess-letter ${colorClass}`;
-                
-                // Keep spaces as empty squares
-                if(guessedCityObj.name[i] === " ") {
-                    letterBox.textContent = "-";
-                    letterBox.style.backgroundColor = "transparent";
-                    letterBox.style.border = "none";
-                } else {
-                    letterBox.textContent = guessedCityObj.name[i];
-                }
-                
-                letterBox.style.animationDelay = `${i * 0.1}s`;
-                row.appendChild(letterBox);
-            }
-            guessesDiv.appendChild(row);
-*/ 
-            // Render the Wordle-style blocks
-const row = document.createElement('div');
-row.className = 'guess-row';
-                let colorClass = '';
-            if (guessedCityObj.name === targetCity.name) {
-                colorClass = 'green';
-            } else if (guessedCityObj.country === targetCity.country) {
-                colorClass = 'yellow';
-            } else if (guessedCityObj.continent === targetCity.continent) {
-                colorClass = 'orange';
-            }
-
-// 1. If toggle is ON, prepend the Country label on the left
-if (infoToggle.checked) {
-    const countryLabel = document.createElement('div');
-    countryLabel.className = 'info-label country-label';
-    countryLabel.textContent = guessedCityObj.country;
-    row.appendChild(countryLabel);
+// Game Logic
+function initGame() {
+    targetCity = cities[Math.floor(Math.random() * cities.length)];
+    guessCount = 0;
+    currentMaxGuesses = nextGameMaxGuesses; 
+    
+    guessesDiv.innerHTML = '';
+    distanceDiv.innerHTML = '';
+    resultDiv.innerHTML = '';
+    guessInput.value = '';
+    guessInput.disabled = false;
+    guessButton.disabled = false;
+    revealBtn.disabled = false;
+    restartButton.style.display = 'none';
+    updateCounter();
 }
 
-            
-// 2. Create the standard letter boxes (Middle)
-for (let i = 0; i < guessedCityObj.name.length; i++) {
-    const letterBox = document.createElement('div');
-    letterBox.className = `guess-letter ${colorClass}`;
+function updateCounter() {
+    counterDiv.textContent = `Guesses remaining: ${currentMaxGuesses - guessCount}`;
+}
+
+function endGame(won) {
+    guessInput.disabled = true;
+    guessButton.disabled = true;
+    revealBtn.disabled = true;
+    restartButton.style.display = 'inline-block';
     
-    // Keep spaces as empty squares
-    if(guessedCityObj.name[i] === " ") {
-        letterBox.textContent = "-";
-        letterBox.style.backgroundColor = "transparent";
-        letterBox.style.border = "none";
+    if (won) {
+        resultDiv.textContent = `Congratulations! You found ${targetCity.name}!`;
+        resultDiv.style.color = "green";
     } else {
-        letterBox.textContent = guessedCityObj.name[i];
+        resultDiv.textContent = `You lost! The city was ${targetCity.name}.`;
+        resultDiv.style.color = "red";
+    }
+}
+
+revealBtn.addEventListener('click', () => { endGame(false); });
+
+guessButton.addEventListener('click', () => {
+    const userGuess = guessInput.value.trim();
+    const guessedCityObj = cities.find(c => c.name.toLowerCase() === userGuess.toLowerCase());
+
+    if (!guessedCityObj) {
+        alert('City not found in the list. Please select from the dropdown.');
+        return;
+    }
+
+    guessCount++;
+    updateCounter();
+
+    // Calculate distance and direction
+    const distance = calculateDistance(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+
+    if (guessedCityObj.name === targetCity.name) {
+        distanceDiv.textContent = `Distance to target: 0 km 🎯`;
+    } else {
+        const arrow = getDirectionEmoji(guessedCityObj.lat, guessedCityObj.lon, targetCity.lat, targetCity.lon);
+        distanceDiv.textContent = `Distance to target: ${distance} km ${arrow}`;
+    }
+
+    // Determine Wordle color
+    let colorClass = '';
+    if (guessedCityObj.name === targetCity.name) {
+        colorClass = 'green';
+    } else if (guessedCityObj.country === targetCity.country) {
+        colorClass = 'yellow';
+    } else if (guessedCityObj.continent === targetCity.continent) {
+        colorClass = 'orange';
+    }
+
+    // Render the Wordle-style blocks with a 3-column layout
+    const row = document.createElement('div');
+    row.className = 'guess-row';
+
+    const leftContainer = document.createElement('div');
+    leftContainer.className = 'info-container left';
+
+    const centerContainer = document.createElement('div');
+    centerContainer.className = 'letters-container';
+
+    const rightContainer = document.createElement('div');
+    rightContainer.className = 'info-container right';
+
+    // 1. If toggle is ON, put the Country label in the left column
+    if (infoToggle.checked) {
+        const countryLabel = document.createElement('div');
+        countryLabel.className = 'info-label';
+        countryLabel.textContent = guessedCityObj.country;
+        leftContainer.appendChild(countryLabel);
+    }
+
+    // 2. Put the letter boxes in the center column
+    for (let i = 0; i < guessedCityObj.name.length; i++) {
+        const letterBox = document.createElement('div');
+        letterBox.className = `guess-letter ${colorClass}`;
+        
+        if(guessedCityObj.name[i] === " ") {
+            letterBox.textContent = "-";
+            letterBox.style.backgroundColor = "transparent";
+            letterBox.style.border = "none";
+        } else {
+            letterBox.textContent = guessedCityObj.name[i];
+        }
+        
+        letterBox.style.animationDelay = `${i * 0.05}s`;
+        centerContainer.appendChild(letterBox);
+    }
+
+    // 3. If toggle is ON, put the Continent label in the right column
+    if (infoToggle.checked) {
+        const continentLabel = document.createElement('div');
+        continentLabel.className = 'info-label';
+        const endDelay = guessedCityObj.name.length * 0.05; 
+        continentLabel.style.animationDelay = `${endDelay}s`;
+        continentLabel.textContent = guessedCityObj.continent;
+        rightContainer.appendChild(continentLabel);
+    }
+
+    row.appendChild(leftContainer);
+    row.appendChild(centerContainer);
+    row.appendChild(rightContainer);
+
+    guessesDiv.appendChild(row);
+
+    // Win / Loss condition checks
+    if (guessedCityObj.name === targetCity.name) {
+        endGame(true);
+    } else if (guessCount >= currentMaxGuesses) {
+        endGame(false);
     }
     
-    // Stagger animation slightly based on position
-    letterBox.style.animationDelay = `${i * 0.05}s`;
-    row.appendChild(letterBox);
-}
+    guessInput.value = '';
+    guessInput.focus();
+});
 
-// 3. If toggle is ON, append the Continent label on the right
-if (infoToggle.checked) {
-    const continentLabel = document.createElement('div');
-    continentLabel.className = 'info-label continent-label';
-    // Calculate continent animation delay so it fades in right after the letters finish animating
-    const endDelay = guessedCityObj.name.length * 0.05; 
-    continentLabel.style.animationDelay = `${endDelay}s`;
-    
-    continentLabel.textContent = guessedCityObj.continent;
-    row.appendChild(continentLabel);
-}
+guessInput.addEventListener('keypress', function (e) {
+    if (e.key === 'Enter' && !guessButton.disabled) {
+        guessButton.click();
+    }
+});
 
-guessesDiv.appendChild(row);
+restartButton.addEventListener('click', initGame);
 
-            // Win / Loss condition checks
-            if (guessedCityObj.name === targetCity.name) {
-                endGame(true);
-            } else if (guessCount >= currentMaxGuesses) {
-                endGame(false);
-            }
-            
-            guessInput.value = '';
-            guessInput.focus();
-        });
-
-        // Allow pressing Enter to guess
-        guessInput.addEventListener('keypress', function (e) {
-            if (e.key === 'Enter' && !guessButton.disabled) {
-                guessButton.click();
-            }
-        });
-
-        restartButton.addEventListener('click', initGame);
-
-        // Start the first game
-        initGame();
+initGame();
     </script>
 </body>
 </html>
