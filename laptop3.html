@@ -991,11 +991,12 @@
         const guessInput = document.getElementById('guess-input');
         const guessButton = document.getElementById('guess-button');
         const restartButton = document.getElementById('restart-button');
+          const infoToggle = document.getElementById('info-toggle');
         const guessesDiv = document.getElementById('guesses');
         const distanceDiv = document.getElementById('distance');
         const resultDiv = document.getElementById('result');
         const counterDiv = document.getElementById('guess-counter');
-        const infoToggle = document.getElementById('info-toggle');
+      
 
         // Toggle listener - applies only to the NEXT game
         toggleBtn.addEventListener('change', (e) => {
@@ -1190,6 +1191,7 @@ if (infoToggle.checked) {
     row.appendChild(countryLabel);
 }
 
+            
 // 2. Create the standard letter boxes (Middle)
 for (let i = 0; i < guessedCityObj.name.length; i++) {
     const letterBox = document.createElement('div');
@@ -1222,6 +1224,7 @@ if (infoToggle.checked) {
 }
 
 guessesDiv.appendChild(row);
+
             // Win / Loss condition checks
             if (guessedCityObj.name === targetCity.name) {
                 endGame(true);
