@@ -191,6 +191,51 @@
             color: #666;
             margin-bottom: 5px;
         }
+
+        /* --- Dark Mode Styles --- */
+body.dark-mode {
+    background-color: #121212;
+    color: #e0e0e0;
+}
+
+body.dark-mode h1 {
+    color: #ffffff;
+}
+
+body.dark-mode .toggle-container {
+    color: #bbbbbb;
+}
+
+body.dark-mode #guess-input {
+    background-color: #2a2a2a;
+    color: #ffffff;
+    border: 1px solid #444;
+}
+
+body.dark-mode #guess-counter {
+    color: #aaaaaa;
+}
+
+/* Update default letter boxes for dark mode */
+body.dark-mode .guess-letter {
+    background-color: #333333;
+    border-color: #555555;
+    color: #ffffff;
+}
+
+/* Tweak the yellow tile in dark mode so white text is readable */
+body.dark-mode .yellow { 
+    background-color: #b89700; 
+    color: white; 
+    border-color: #997d00; 
+}
+
+/* Update the country/continent badges for dark mode */
+body.dark-mode .info-label {
+    background-color: #2a2a2a;
+    color: #cccccc;
+    box-shadow: 0 1px 3px rgba(255,255,255,0.05);
+}
     </style>
 </head>
 <body>
@@ -213,6 +258,18 @@
         </label>
         <span>Show Country & Continent info</span>
     </div>
+
+    <!-- Dark Mode Toggle -->
+    <div class="toggle-container">
+        <label class="switch">
+            <input type="checkbox" id="dark-mode-toggle">
+            <span class="slider"></span>
+        </label>
+        <span>Dark Mode</span>
+    </div>
+
+    <button id="reveal-button">Reveal Answer</button>
+</div>
 
     <button id="reveal-button">Reveal Answer</button>
 </div>
@@ -997,7 +1054,17 @@
         const resultDiv = document.getElementById('result');
         const counterDiv = document.getElementById('guess-counter');
       
+const darkModeToggle = document.getElementById('dark-mode-toggle');
 
+// Dark Mode listener
+darkModeToggle.addEventListener('change', (e) => {
+    if (e.target.checked) {
+        document.body.classList.add('dark-mode');
+    } else {
+        document.body.classList.remove('dark-mode');
+    }
+});
+        
         // Toggle listener - applies to next game
         toggleBtn.addEventListener('change', (e) => {
             nextGameMaxGuesses = e.target.checked ? 10 : 6;
