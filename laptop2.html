@@ -36,33 +36,6 @@
         #guess-button:hover {
             background-color: #45a049;
         }
-        /* New styles for the added controls */
-        #extra-controls {
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 10px;
-            background-color: #e0e0e0;
-            padding: 15px;
-            border-radius: 8px;
-        }
-        .toggle-row {
-            display: flex;
-            gap: 15px;
-        }
-        #reveal-button {
-            padding: 8px 15px;
-            font-size: 16px;
-            background-color: #f44336;
-            color: white;
-            border: none;
-            cursor: pointer;
-            border-radius: 4px;
-        }
-        #reveal-button:hover {
-            background-color: #d32f2f;
-        }
-        /* End new styles */
         #guesses {
             display: flex;
             flex-direction: column;
@@ -71,9 +44,28 @@
         .guess-row {
             display: flex;
             gap: 15px;
-            padding: 10px;
-            border-radius: 4px;
+        }
+        .guess-letter {
+            width: 40px;
+            height: 40px;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            background-color: #ddd;
+            border: 1px solid #999;
             font-weight: bold;
+            opacity: 0;
+            animation: emerge 0.5s forwards;
+        }
+        @keyframes emerge {
+            from {
+                opacity: 0;
+                transform: translateX(-20px);
+            }
+            to {
+                opacity: 1;
+                transform: translateX(0);
+            }
         }
         .orange {
             background-color: #FFA500;
@@ -99,21 +91,6 @@
     <div id="game-container">
         <input type="text" id="guess-input" placeholder="Enter a city name">
         <button id="guess-button">Guess</button>
-        
-        <!-- NEWLY ADDED: Toggles and Reveal Button -->
-        <div id="extra-controls">
-            <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="extra-guesses-toggle"> Enable 4 Extra Guesses
-                </label>
-                <label>
-                    <input type="checkbox" id="reveal-info-toggle"> Reveal Country & Continent
-                </label>
-            </div>
-            <button id="reveal-button">Reveal Answer</button>
-        </div>
-        <!-- END NEWLY ADDED -->
-
         <div id="guesses"></div>
         <div id="distance"></div>
         <div id="result"></div>
@@ -121,7 +98,7 @@
 
     <script>
         const cities = [
-           {name: "Moscow", lat: 55.7558, lon: 37.6173, continent: "Europe", country: "Russia"},
+  {name: "Moscow", lat: 55.7558, lon: 37.6173, continent: "Europe", country: "Russia"},
     {name: "Kharkiv", lat: 50.0000, lon: 36.2500, continent: "Europe", country: "Ukraine"},
     {name: "St Petersburg", lat: 59.9375, lon: 30.3086, continent: "Europe", country: "Russia"},
     {name: "Kazan", lat: 55.7887, lon: 49.1221, continent: "Europe", country: "Russia"},
@@ -852,7 +829,10 @@
 {name: "Dusseldorf", lat: 51.2277, lon: 6.7735, continent: "Europe", country: "Germany"},
 {name: "Bonn", lat: 50.7374, lon: 7.0982, continent: "Europe", country: "Germany"},
 {name: "Patna", lat: 25.5941, lon: 85.1376, continent: "Asia", country: "India"},
-{name: "Nuuk", lat: 64.1830, lon: -51.7216, continent: "North America", country: "Greenland"}];
+{name: "Nuuk", lat: 64.1830, lon: -51.7216, continent: "North America", country: "Greenland"}
+
+
+        ];
 
         let targetCity;
         let guessCount = 0;
@@ -864,113 +844,96 @@
             document.getElementById('guesses').innerHTML = '';
             document.getElementById('distance').textContent = '';
             document.getElementById('result').textContent = '';
-            
-            // Reset buttons and inputs
             document.getElementById('guess-button').disabled = false;
-            document.getElementById('reveal-button').disabled = false;
-            document.getElementById('guess-input').disabled = false;
-            document.getElementById('guess-input').value = '';
         }
 
-        // Finished your cutoff distance function 
         function calculateDistance(lat1, lon1, lat2, lon2) {
             const R = 6371; // Earth's radius in km
             const dLat = (lat2 - lat1) * Math.PI / 180;
             const dLon = (lon2 - lon1) * Math.PI / 180;
             const a = Math.sin(dLat/2) * Math.sin(dLat/2) +
-                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * 
+                      Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) *
                       Math.sin(dLon/2) * Math.sin(dLon/2);
             const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a));
             return Math.round(R * c);
         }
+  function getDirectionEmoji(lat1, lon1, lat2, lon2) {
+            const dLat = lat2 - lat1;
+            const dLon = lon2 - lon1;
+            const angle = Math.atan2(dLat, dLon) * 180 / Math.PI;
 
-        function handleGuess() {
-            const inputVal = document.getElementById('guess-input').value.trim();
-            if (!inputVal) return;
+            if (angle > -22.5 && angle <= 22.5) return "→";
+            if (angle > 22.5 && angle <= 67.5) return "↗";
+            if (angle > 67.5 && angle <= 112.5) return "↑";
+            if (angle > 112.5 && angle <= 157.5) return "↖";
+            if (angle > 157.5 || angle <= -157.5) return "←";
+            if (angle > -157.5 && angle <= -112.5) return "↙";
+            if (angle > -112.5 && angle <= -67.5) return "↓";
+            if (angle > -67.5 && angle <= -22.5) return "↘";
+        }
 
-            const guessedCity = cities.find(c => c.name.toLowerCase() === inputVal.toLowerCase());
-            
+        function checkGuess() {
+            const guessInput = document.getElementById('guess-input');
+            const guess = guessInput.value.trim().toLowerCase();
+            const guessedCity = cities.find(city => city.name.toLowerCase() === guess);
+
             if (!guessedCity) {
-                alert("City not found. Try another one!");
+                alert('City not found in the list. Please try again.');
                 return;
             }
 
             guessCount++;
-            const distance = calculateDistance(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
-            
-            // Check if extra guesses toggle is enabled
-            const isExtraEnabled = document.getElementById('extra-guesses-toggle').checked;
-            const currentMaxGuesses = isExtraEnabled ? (maxGuesses + 4) : maxGuesses;
-            
-            // Check if reveal info toggle is enabled
-            const revealInfo = document.getElementById('reveal-info-toggle').checked;
-            
-            // Create UI element for the guess
             const guessRow = document.createElement('div');
             guessRow.className = 'guess-row';
-            
-            // Format the string based on toggle
-            let displayText = guessedCity.name;
-            if (revealInfo) {
-                displayText = `${guessedCity.country} - ${guessedCity.name} - ${guessedCity.continent}`;
-            }
 
-            guessRow.textContent = `${displayText} (${distance} km)`;
-            
-            // Apply colors based on distance
-            if (distance === 0) {
-                guessRow.classList.add('green');
-                endGame(true);
-            } else if (distance <= 1500) {
-                guessRow.classList.add('yellow');
-            } else {
-                guessRow.classList.add('orange');
+            for (let i = 0; i < guessedCity.name.length; i++) {
+                const letter = document.createElement('div');
+                letter.className = 'guess-letter';
+                letter.textContent = guessedCity.name[i].toUpperCase();
+                letter.style.animationDelay = `${i * 0.1}s`;
+
+                if (guessedCity === targetCity) {
+                    letter.classList.add('green');
+                } else if (guessedCity.country === targetCity.country) {
+                    letter.classList.add('yellow');
+                } else if (guessedCity.continent === targetCity.continent) {
+                    letter.classList.add('orange');
+                }
+
+                guessRow.appendChild(letter);
+            }
+  if (guessedCity !== targetCity) {
+                const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
+                const emojiSpan = document.createElement('span');
+                emojiSpan.className = 'direction-emoji';
+                emojiSpan.textContent = directionEmoji;
+                guessRow.appendChild(emojiSpan);
             }
 
             document.getElementById('guesses').appendChild(guessRow);
-            document.getElementById('guess-input').value = '';
+
+            const distance = calculateDistance(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
             document.getElementById('distance').textContent = `Distance: ${distance} km`;
 
-            // Handle Loss Condition
-            if (distance !== 0 && guessCount >= currentMaxGuesses) {
-                endGame(false);
+            if (guessedCity === targetCity) {
+                document.getElementById('result').textContent = 'Congratulations! You guessed the city!';
+                document.getElementById('guess-button').disabled = true;
+            } else if (guessCount >= maxGuesses) {
+                document.getElementById('result').textContent = `Game over! The city was ${targetCity.name}.`;
+                document.getElementById('guess-button').disabled = true;
             }
+
+            guessInput.value = '';
         }
 
-        // Function triggered when the user explicitly hits "Reveal Answer"
-        function revealAnswer() {
-            endGame(false);
-        }
-
-        // Logic for ending the game (win or loss)
-        function endGame(isWin) {
-            document.getElementById('guess-button').disabled = true;
-            document.getElementById('reveal-button').disabled = true;
-            document.getElementById('guess-input').disabled = true;
-
-            const resultDiv = document.getElementById('result');
-            if (isWin) {
-                resultDiv.textContent = `Congratulations! You guessed it in ${guessCount} tries.`;
-                resultDiv.style.color = "green";
-            } else {
-                resultDiv.textContent = `You lost! The city was ${targetCity.name}.`;
-                resultDiv.style.color = "red";
-            }
-        }
-
-        // Event Listeners
-        document.getElementById('guess-button').addEventListener('click', handleGuess);
-        document.getElementById('reveal-button').addEventListener('click', revealAnswer);
-        
-        // Allow user to hit 'Enter' to submit guess
-        document.getElementById('guess-input').addEventListener('keypress', function (e) {
-            if (e.key === 'Enter') {
-                handleGuess();
+        document.getElementById('guess-button').addEventListener('click', checkGuess);
+        document.getElementById('guess-input').addEventListener('keypress', function(event) {
+            if (event.key === 'Enter') {
+                checkGuess();
             }
         });
 
-        // Initialize the first game
-        window.onload = initGame;
+        initGame();
     </script>
 </body>
 </html>
