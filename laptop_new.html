@@ -176,6 +176,11 @@
             background-color: #007B9A;
         }
     </style>
+    <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>City Guesser</title>
+  <!-- This script enables Tailwind CSS styling directly in HTML -->
+  <script src="https://cdn.tailwindcss.com"></script>
 </head>
 <body>
     <h1>Citydle</h1>
@@ -205,6 +210,88 @@
     </div>
 
     <script>
+        //Start A
+        <div class="flex flex-col items-center gap-6 p-6 font-sans mt-10">
+    
+    <!-- Toggle Bar -->
+    <div class="flex items-center gap-3">
+      <span class="text-sm font-medium text-gray-700">Hide Details</span>
+      <button 
+        id="toggleBtn" 
+        class="relative inline-flex h-6 w-11 items-center rounded-full transition-colors bg-gray-300"
+      >
+        <span 
+          id="toggleKnob" 
+          class="inline-block h-4 w-4 transform rounded-full bg-white transition-transform translate-x-1"
+        ></span>
+      </button>
+      <span class="text-sm font-medium text-gray-700">Show Details</span>
+    </div>
+
+    <!-- Guessing Row Layout -->
+    <div class="grid grid-cols-3 items-center w-full max-w-3xl gap-4">
+      
+      <!-- Left Column: Continent (Hidden by default) -->
+      <div class="flex justify-end text-lg font-semibold text-gray-600">
+        <span id="continentText" style="display: none;">Europe</span>
+      </div>
+
+      <!-- Center Column: City (Wordle Style) -->
+      <!-- JavaScript will inject the letter boxes into this container -->
+      <div id="cityContainer" class="flex justify-center gap-1.5"></div>
+
+      <!-- Right Column: Country (Hidden by default) -->
+      <div class="flex justify-start text-lg font-semibold text-gray-600">
+        <span id="countryText" style="display: none;">France</span>
+      </div>
+
+    </div>
+  </div>
+
+  <!-- JAVASCRIPT LOGIC -->
+  <script>
+    // 1. Set your variables here
+    const cityName = "PARIS";
+    
+    // 2. Grab the elements from the HTML
+    const toggleBtn = document.getElementById('toggleBtn');
+    const toggleKnob = document.getElementById('toggleKnob');
+    const continentText = document.getElementById('continentText');
+    const countryText = document.getElementById('countryText');
+    const cityContainer = document.getElementById('cityContainer');
+
+    // 3. Generate the Wordle-style boxes for the city name
+    cityName.split('').forEach(letter => {
+      // Create a square div for each letter
+      const square = document.createElement('div');
+      square.className = "flex items-center justify-center w-12 h-12 text-2xl font-bold text-gray-800 uppercase bg-white border-2 border-gray-400 shadow-sm";
+      square.textContent = letter;
+      
+      // Add it to the center container
+      cityContainer.appendChild(square);
+    });
+
+    // 4. Handle the Toggle Switch Logic
+    let isShowingDetails = false;
+
+    toggleBtn.addEventListener('click', () => {
+      isShowingDetails = !isShowingDetails; // Flip the state
+
+      if (isShowingDetails) {
+        // Show text and turn toggle blue
+        continentText.style.display = 'block';
+        countryText.style.display = 'block';
+        toggleBtn.classList.replace('bg-gray-300', 'bg-blue-600');
+        toggleKnob.classList.replace('translate-x-1', 'translate-x-6');
+      } else {
+        // Hide text and turn toggle gray
+        continentText.style.display = 'none';
+        countryText.style.display = 'none';
+        toggleBtn.classList.replace('bg-blue-600', 'bg-gray-300');
+        toggleKnob.classList.replace('translate-x-6', 'translate-x-1');
+      }
+    });
+  //Start original
         const cities = [
             {name: "Moscow", lat: 55.7558, lon: 37.6173, continent: "Europe", country: "Russia"},
             {name: "Kharkiv", lat: 50.0, lon: 36.25, continent: "Europe", country: "Ukraine"},
