@@ -121,19 +121,7 @@
         <div id="guesses"></div>
         <div id="distance"></div>
         <div id="result"></div>
-    </div>
-//extra controls
-<div id="extra-controls">
-            <div class="toggle-row">
-                <label>
-                    <input type="checkbox" id="extra-guesses-toggle"> Enable 4 Extra Guesses
-                </label>
-                <label>
-                    <input type="checkbox" id="reveal-info-toggle"> Reveal Country & Continent
-                </label>
-            </div>
-            <button id="reveal-button">Reveal Answer</button>
-        </div>
+
     
     <script>
         const cities = [
@@ -942,24 +930,7 @@
                 guessRow.appendChild(letter);
             }
 
-            //NEW: 
-            // Check if extra guesses toggle is enabled
-            const isExtraEnabled = document.getElementById('extra-guesses-toggle').checked;
-            const currentMaxGuesses = isExtraEnabled ? (maxGuesses + 4) : maxGuesses;
-            
-            // Check if reveal info toggle is enabled
-            const revealInfo = document.getElementById('reveal-info-toggle').checked;
-            
-            // Create UI element for the guess
-            const guessRow = document.createElement('div');
-            guessRow.className = 'guess-row';
-            //endNEW1
-
-            // Function triggered when the user explicitly hits "Reveal Answer"
-        function revealAnswer() {
-            endGame(false);
-        }
-            //endNEW2
+        
   if (guessedCity !== targetCity) {
                 const directionEmoji = getDirectionEmoji(guessedCity.lat, guessedCity.lon, targetCity.lat, targetCity.lon);
                 const emojiSpan = document.createElement('span');
