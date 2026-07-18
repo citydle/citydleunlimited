@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Chess</title>
+    <title>Play Chess vs Bot!!!</title>
     
     <!-- Chessboard.js Core CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
@@ -19,14 +19,53 @@
             justify-content: center;
             min-height: 100vh;
             margin: 0;
+            padding: 20px;
+            box-sizing: border-box;
         }
 
         h1 {
-            margin-bottom: 5px;
+            margin-top: 0;
+            margin-bottom: 15px;
             color: #4caf50;
         }
 
-        /* Responsive board wrapper */
+        /* Matchmaking & Settings Panel */
+        .controls-panel {
+            display: flex;
+            gap: 15px;
+            margin-bottom: 20px;
+            background: #2a2a35;
+            padding: 12px 20px;
+            border-radius: 8px;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.3);
+        }
+
+        .control-group {
+            display: flex;
+            flex-direction: column;
+            gap: 5px;
+        }
+
+        .control-group label {
+            font-size: 0.75rem;
+            color: #aaa;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            font-weight: bold;
+        }
+
+        select {
+            background: #1e1e24;
+            color: white;
+            border: 1px solid #4caf50;
+            padding: 8px 12px;
+            border-radius: 4px;
+            font-size: 0.95rem;
+            outline: none;
+            cursor: pointer;
+        }
+
+        /* Responsive chessboard layout */
         #board {
             width: 450px;
             max-width: 90vw;
@@ -41,13 +80,14 @@
         }
 
         #status {
-            font-size: 1.2rem;
+            font-size: 1.1rem;
             font-weight: 600;
             margin-bottom: 15px;
             background: #2a2a35;
-            padding: 8px 20px;
+            padding: 8px 25px;
             border-radius: 20px;
             box-shadow: inset 0 2px 5px rgba(0,0,0,0.3);
+            min-width: 200px;
         }
 
         button {
@@ -73,60 +113,124 @@
 </head>
 <body>
 
-    <h1>GitHub Chess</h1>
+    <h1>Stockfish Arena</h1>
     
+    <!-- Game Configuration Settings -->
+    <div class="controls-panel">
+        <div class="control-group">
+            <label for="colorSelect">Play As</label>
+            <select id="colorSelect">
+                <option value="w" selected>White</option>
+                <option value="b">Black</option>
+            </select>
+        </div>
+        <div class="control-group">
+            <label for="difficultySelect">Difficulty</label>
+            <select id="difficultySelect">
+                <option value="1">Easy (Depth 1)</option>
+                <option value="5" selected>Medium (Depth 5)</option>
+                <option value="12">Hard (Depth 12)</option>
+            </select>
+        </div>
+    </div>
+
     <!-- The Chessboard Container -->
     <div id="board"></div>
 
     <!-- Status and Controls -->
     <div class="info-panel">
-        <div id="status">Loading game...</div>
-        <button id="resetBtn">Restart Game</button>
+        <div id="status">Setting up game...</div>
+        <button id="startBtn">Start New Game</button>
     </div>
 
-    <!-- Dependencies: jQuery, Chess.js (rules), and Chessboard.js (UI) -->
+    <!-- External Libraries: jQuery, Chess.js, and Chessboard.js -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chess.js/0.10.3/chess.min.js"></script>
     <script src="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.js"></script>
 
     <script>
-        // 1. Initialize logic engine (chess.js) and UI board placeholder
         var game = new Chess();
         var board = null;
         var $status = $('#status');
+        
+        // Game State Variables
+        var playerColor = 'w'; 
+        var aiDepth = 5;       
+        var isAiThinking = false; 
 
-        // 2. Only allow dragging pieces if it's that player's actual turn
+        // 1. Lock down board interaction when it's not the user's turn
         function onDragStart (source, piece, position, orientation) {
-            if (game.game_over()) return false;
+            if (game.game_over() || isAiThinking) return false;
 
-            // Prevent picking up wrong color pieces
-            if ((game.turn() === 'w' && piece.search(/^b/) !== -1) ||
-                (game.turn() === 'b' && piece.search(/^w/) !== -1)) {
+            // Only allow the user to lift pieces matching their chosen side
+            if ((playerColor === 'w' && piece.search(/^b/) !== -1) ||
+                (playerColor === 'b' && piece.search(/^w/) !== -1)) {
                 return false;
             }
         }
 
-        // 3. Handle when a piece drops onto a square
+        // 2. Handle human player move dropping
         function onDrop (source, target) {
-            // Check if move is legal
             var move = game.move({
                 from: source,
                 to: target,
-                promotion: 'q' // Default auto-promote to Queen for simplicity
+                promotion: 'q' // Auto-promote to Queen for simplicity
             });
 
-            // If illegal, snap piece back to original spot
             if (move === null) return 'snapback';
-
             updateStatus();
         }
 
-        // 4. Update board visuals (critical for special moves like castling/en passant)
+        // 3. Trigger the Bot immediately after human finishes moving
         function onSnapEnd () {
             board.position(game.fen());
+
+            // If it is now the AI's turn, call the API
+            if (!game.game_over() && game.turn() !== playerColor) {
+                setTimeout(makeAiMove, 300); // Tiny pause for animation smoothness
+            }
         }
 
-        // 5. Update game state message (Turn, Check, Checkmate, Draw)
+        // 4. Fetch optimal move from the Cloud Stockfish Engine
+        function makeAiMove() {
+            if (game.game_over()) return;
+
+            isAiThinking = true;
+            $status.html("🤖 Bot is plotting its move...");
+
+            fetch("https://chess-api.com/v1", {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({
+                    fen: game.fen(),
+                    depth: aiDepth
+                })
+            })
+            .then(res => res.json())
+            .then(data => {
+                isAiThinking = false;
+                
+                if (data && data.from && data.to) {
+                    game.move({
+                        from: data.from,
+                        to: data.to,
+                        promotion: data.promotion || 'q'
+                    });
+                    
+                    board.position(game.fen());
+                    updateStatus();
+                } else {
+                    $status.html("⚠️ Engine Error. Try resetting.");
+                }
+            })
+            .catch(err => {
+                isAiThinking = false;
+                console.error(err);
+                $status.html("🌐 Network Error. Check connection.");
+            });
+        }
+
+        // 5. Update Status Text Display
         function updateStatus () {
             var status = '';
             var moveColor = (game.turn() === 'b') ? 'Black' : 'White';
@@ -136,35 +240,49 @@
             } else if (game.in_draw()) {
                 status = 'Game over! Draw position.';
             } else {
-                status = moveColor + ' to move';
+                if (game.turn() === playerColor) {
+                    status = 'Your turn (' + (playerColor === 'w' ? 'White' : 'Black') + ')';
+                } else {
+                    status = '🤖 Bot is plotting its move...';
+                }
                 if (game.in_check()) {
-                    status += ' (Check!)';
+                    status += ' - Check!';
                 }
             }
             $status.html(status);
         }
 
-        // 6. Chessboard Configurations
+        // 6. Start/Reset Game Loop Configurations
+        function startNewGame() {
+            game.reset();
+            playerColor = $('#colorSelect').val();
+            aiDepth = parseInt($('#difficultySelect').val());
+            isAiThinking = false;
+
+            // Flip visual board mapping if player chooses Black
+            board.orientation(playerColor === 'w' ? 'white' : 'black');
+            board.start();
+            updateStatus();
+
+            // If player chose Black, the bot plays White and moves first!
+            if (playerColor === 'b') {
+                makeAiMove();
+            }
+        }
+
         var config = {
             draggable: true,
             position: 'start',
             onDragStart: onDragStart,
             onDrop: onDrop,
             onSnapEnd: onSnapEnd,
-            // Fetch high-quality piece images online directly 
             pieceTheme: 'https://chessboardjs.com/img/chesspieces/wikipedia/{piece}.png'
         };
         
-        // Render board layout
         board = Chessboard('board', config);
-        updateStatus();
+        startNewGame(); // Run automatically on boot
 
-        // 7. Restart Game Click Handler
-        $('#resetBtn').on('click', function() {
-            game.reset();
-            board.start();
-            updateStatus();
-        });
+        $('#startBtn').on('click', startNewGame);
     </script>
 </body>
 </html>
