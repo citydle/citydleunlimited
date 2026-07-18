@@ -198,44 +198,41 @@
             isAiThinking = true;
             $status.html("🤖 Bot is plotting its move...");
 
-            fetch("https://chess-api.com/v1", {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                body: JSON.stringify({
-                    fen: game.fen(),
-                    depth: aiDepth
-                })
-            })
+            // Swapping to stockfish.online which accepts En Passant flags seamlessly
+            var fenStr = encodeURIComponent(game.fen());
+            var url = "https://stockfish.online/api/s/v2.php?fen=" + fenStr + "&depth=" + aiDepth;
+
+            fetch(url)
             .then(res => res.json())
             .then(data => {
                 isAiThinking = false;
                 
-                // Smart Parsing: Support both 'from'/'to' objects and string fallback structures (e.g., "e2e4")
-                var fromSquare = data.from;
-                var toSquare = data.to;
-                var promotionPiece = data.promotion || 'q';
+                // Parsing strategy for stockfish.online format (e.g. returns "bestmove e2e4 ponder...")
+                var rawMoveString = data.bestmove || data.data || "";
+                
+                if (rawMoveString && rawMoveString.includes("bestmove")) {
+                    var parts = rawMoveString.split(" ");
+                    var moveStr = parts[1]; // Safely isolates the clean coordinate string like "e2e4"
 
-                // Fallback: If 'from'/'to' fields are missing, slice the combined 'move' string if available
-                if (!fromSquare && data.move && data.move.length >= 4) {
-                    fromSquare = data.move.slice(0, 2);
-                    toSquare = data.move.slice(2, 4);
-                    if (data.move.length === 5) {
-                        promotionPiece = data.move.slice(4, 5);
+                    if (moveStr && moveStr.length >= 4) {
+                        var fromSquare = moveStr.slice(0, 2);
+                        var toSquare = moveStr.slice(2, 4);
+                        var promotionPiece = moveStr.length === 5 ? moveStr.slice(4, 5) : 'q';
+
+                        game.move({
+                            from: fromSquare,
+                            to: toSquare,
+                            promotion: promotionPiece
+                        });
+                        
+                        board.position(game.fen());
+                        updateStatus();
+                        return; // Exit successfully
                     }
                 }
                 
-                if (fromSquare && toSquare) {
-                    game.move({
-                        from: fromSquare,
-                        to: toSquare,
-                        promotion: promotionPiece
-                    });
-                    
-                    board.position(game.fen());
-                    updateStatus();
-                } else {
-                    $status.html("⚠️ Engine Error. Try resetting.");
-                }
+                // Fallback catch-all if format changed unexpectedly
+                $status.html("⚠️ Engine Error. Try resetting.");
             })
             .catch(err => {
                 isAiThinking = false;
