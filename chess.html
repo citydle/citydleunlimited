@@ -3,7 +3,7 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Play Chess vs Bot!!!</title>
+    <title>Play Chess vs Stockfish</title>
     
     <!-- Chessboard.js Core CSS -->
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/chessboard-js/1.0.0/chessboard-1.0.0.min.css">
@@ -210,11 +210,25 @@
             .then(data => {
                 isAiThinking = false;
                 
-                if (data && data.from && data.to) {
+                // Smart Parsing: Support both 'from'/'to' objects and string fallback structures (e.g., "e2e4")
+                var fromSquare = data.from;
+                var toSquare = data.to;
+                var promotionPiece = data.promotion || 'q';
+
+                // Fallback: If 'from'/'to' fields are missing, slice the combined 'move' string if available
+                if (!fromSquare && data.move && data.move.length >= 4) {
+                    fromSquare = data.move.slice(0, 2);
+                    toSquare = data.move.slice(2, 4);
+                    if (data.move.length === 5) {
+                        promotionPiece = data.move.slice(4, 5);
+                    }
+                }
+                
+                if (fromSquare && toSquare) {
                     game.move({
-                        from: data.from,
-                        to: data.to,
-                        promotion: data.promotion || 'q'
+                        from: fromSquare,
+                        to: toSquare,
+                        promotion: promotionPiece
                     });
                     
                     board.position(game.fen());
